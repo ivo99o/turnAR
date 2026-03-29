@@ -1,0 +1,16 @@
+{
+  "name": "turnar",
+  "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently --names API,WEB --prefix-colors blue,green \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.8.1"
+  }
+}

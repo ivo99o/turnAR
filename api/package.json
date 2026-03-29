@@ -1,0 +1,16 @@
+{
+  "name": "api",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@koa/router": "^15.4.0",
+    "koa": "^2.16.4",
+    "koa-bodyparser": "^4.4.1",
+    "knex": "^2.5.1",
+    "pg": "^8.20.0"
+  },
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  }
+}
