@@ -4,9 +4,12 @@
   "type": "module",
   "dependencies": {
     "@koa/router": "^15.4.0",
+    "dotenv": "^17.3.1",
+    "googleapis": "^171.4.0",
+    "knex": "^3.2.8",
     "koa": "^2.16.4",
     "koa-bodyparser": "^4.4.1",
-    "knex": "^2.5.1",
+    "objection": "^3.1.5",
     "pg": "^8.20.0"
   },
   "scripts": {
