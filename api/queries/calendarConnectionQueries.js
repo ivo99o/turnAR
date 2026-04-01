@@ -36,7 +36,7 @@ const createCalendarConnection = async (body) => {
     refresh_token,
     token_type,
     scope,
-    expiry_date,
+    expiry_date: new Date(expiry_date),
     google_account_id,
     email,
     is_active,
