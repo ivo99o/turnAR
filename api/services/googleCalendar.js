@@ -37,10 +37,13 @@ async function getValidAccessToken(id) {
 
   const newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
 
-  await CalendarConnection.query().findById(id).update({
-    access_token: data.access_token,
-    expiry_date: newExpiresAt,
-  });
+  await CalendarConnection.query()
+    .findById(id)
+    .update({
+      access_token: data.access_token,
+      expiry_date: newExpiresAt,
+      ...(data.refresh_token && { refresh_token: data.refresh_token }),
+    });
 
   return data.access_token;
 }
@@ -63,7 +66,7 @@ async function revokeGoogleAccess(id) {
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
     );
   } catch (error) {
-    throw new Error('Failed to revoke Google access: ' + error.message);
+    throw new Error('Failed to revoke Google access: ' + error);
   }
 
   await CalendarConnection.query().findById(id).update({ is_active: false });

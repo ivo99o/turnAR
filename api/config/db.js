@@ -6,8 +6,6 @@ dotenv.config();
 
 const { Pool } = pg;
 
-console.log(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD);
-
 const pool = new Pool({
   host: DB_HOST,
   port: DB_PORT,

@@ -2,9 +2,8 @@ import Router from '@koa/router';
 import User from '../models/User.js';
 import CalendarConnection from '../models/CalendarConnection.js';
 import _ from 'lodash';
-import { getValidAccessToken } from '../services/googleCalendar.js';
-import axios from 'axios';
 import moment from 'moment';
+import { getEvents } from '../services/events.js';
 // import { authenticate } from '@google-cloud/local-auth';
 
 const router = new Router({
@@ -22,6 +21,7 @@ router.get('/:userId/available-appointments', async (ctx) => {
   const user = await User.query().findById(userId).first();
 
   // in line query: getUserCalendars(userId)
+
   let calendars = await CalendarConnection.query()
     .where('user_id', userId)
     .where('is_active', true);
@@ -37,28 +37,12 @@ router.get('/:userId/available-appointments', async (ctx) => {
 
   for (const calendar of calendars) {
     // service: getEvents(calendar.calendar_id)
-    try {
-      const accessToken = await getValidAccessToken(calendar.id);
+    const events = await getEvents(calendar.id, {
+      startDate: moment(),
+      endDate: moment().add(DEFAULT_LIMIT_DAYS_AHEAD, 'days'),
+    });
 
-      const {
-        data: { items },
-      } = await axios.get('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params: {
-          timeMin: new Date().toISOString(),
-          timeMax: new Date(
-            Date.now() + DEFAULT_LIMIT_DAYS_AHEAD * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-      });
-
-      // ctx.body = data.items;
-    } catch (err) {
-      console.error('Error fetching access token:', err);
-      ctx.status = 500;
-      ctx.body = { error: 'Failed to get access token' };
-      return;
-    }
+    console.log(`Events for calendar ${calendar.calendar_id}:`, events);
 
     // flatten all events into a single object/array
   }

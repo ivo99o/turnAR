@@ -63,6 +63,4 @@ export const up = async (knex) => {
 
 export const down = async (knex) => {
   await knex.schema.dropTableIfExists('google_calendar_integrations');
-
-  console.log('✅ Migration DOWN: google_calendar_integrations dropped');
 };

@@ -35,7 +35,6 @@ router.get('/auth/link', async (ctx) => {
 
   // TODO: Create a new CalendarConnection
 
-
   const url = oauthClient.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
