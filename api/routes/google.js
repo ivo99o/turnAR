@@ -33,14 +33,20 @@ router.get('/events', async (ctx) => {
 router.get('/auth/link', async (ctx) => {
   const oauthClient = createOAuthClient();
 
+  // TODO: Create a new CalendarConnection
+
+
   const url = oauthClient.generateAuthUrl({
-    access_type: 'offline', // required to get a refresh_token
-    prompt: 'consent', // forces Google to return refresh_token every time
+    access_type: 'offline',
+    prompt: 'consent',
     scope: [
       'https://www.googleapis.com/auth/calendar.events',
       'https://www.googleapis.com/auth/userinfo.email',
     ],
-    state: JSON.stringify({ mensaje: 'Esto deberia ser un ID de una instancia ya creada de CalendarConnection para luego solo actualizar utilizando esta referencia' }), // passed back in the callback
+    state: JSON.stringify({
+      mensaje:
+        'Esto deberia ser un ID de una instancia ya creada de CalendarConnection para luego solo actualizar utilizando esta referencia',
+    }), // TOOD: Usar el ID de CalendarConnection o de userId
   });
 
   ctx.response.body = { url };

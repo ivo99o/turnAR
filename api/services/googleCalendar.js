@@ -1,3 +1,4 @@
+import { CLIENT_ID, CLIENT_SECRET } from '../config/index.js';
 import CalendarConnection from '../models/CalendarConnection.js';
 import axios from 'axios';
 
@@ -17,15 +18,15 @@ async function getValidAccessToken(id) {
   }
 
   const FIVE_MINUTES_MS = 5 * 60 * 1000;
-  const isExpiringSoon = new Date(connection.expires_at) - Date.now() < FIVE_MINUTES_MS;
+  const isExpiringSoon = new Date(connection.expiry_date) - Date.now() < FIVE_MINUTES_MS;
 
   if (!isExpiringSoon) {
     return connection.access_token;
   }
 
   const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
     refresh_token: connection.refresh_token,
     grant_type: 'refresh_token',
   });
@@ -38,7 +39,7 @@ async function getValidAccessToken(id) {
 
   await CalendarConnection.query().findById(id).update({
     access_token: data.access_token,
-    expires_at: newExpiresAt,
+    expiry_date: newExpiresAt,
   });
 
   return data.access_token;
