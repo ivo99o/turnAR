@@ -10,26 +10,6 @@ const router = new Router({
   prefix: '/google',
 });
 
-router.get('/events', async (ctx) => {
-  const { id } = ctx.query; // however you get it from auth
-
-  try {
-    const accessToken = await getValidAccessToken(id);
-
-    const { data } = await axios.get(
-      'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-      { headers: { Authorization: `Bearer ${accessToken}` } },
-    );
-
-    ctx.body = data.items;
-  } catch (err) {
-    console.error('Error fetching access token:', err);
-    ctx.status = 500;
-    ctx.body = { error: 'Failed to get access token' };
-    return;
-  }
-});
-
 router.get('/auth/link', async (ctx) => {
   const oauthClient = createOAuthClient();
 

@@ -1,8 +1,8 @@
 import CalendarConnection from '../models/CalendarConnection.js';
 
-const createCalendarConnection = async (body) => {
-  if (!body) {
-    throw new Error('Request body is missing');
+const createCalendarConnection = async (data) => {
+  if (!data) {
+    throw new Error('Request data is missing');
   }
 
   let {
@@ -14,7 +14,7 @@ const createCalendarConnection = async (body) => {
     google_account_id,
     email,
     is_active,
-  } = body;
+  } = data;
 
   is_active = true; // Ensure new connections are active by default
 

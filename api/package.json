@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@google-cloud/local-auth": "^2.1.0",
     "@koa/router": "^15.4.0",
     "axios": "^1.14.0",
     "dotenv": "^17.3.1",

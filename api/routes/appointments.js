@@ -4,23 +4,18 @@ import CalendarConnection from '../models/CalendarConnection.js';
 import _ from 'lodash';
 import moment from 'moment';
 import { getEvents } from '../services/events.js';
-// import { authenticate } from '@google-cloud/local-auth';
 
 const router = new Router({
   prefix: '/appointments',
 });
 
-// this defaults should then be workspace/user relative
 const DEFAULT_APPOINTMENT_DURATION = 30; // in minutes
 const DEFAULT_LIMIT_DAYS_AHEAD = 7; // how many days ahead to calculate available appointments
 
 router.get('/:userId/available-appointments', async (ctx) => {
   const { userId } = ctx.params;
 
-  // in line query: getUserById(userId)
-  const user = await User.query().findById(userId).first();
-
-  // in line query: getUserCalendars(userId)
+  // const user = await User.query().findById(userId).first();
 
   let calendars = await CalendarConnection.query()
     .where('user_id', userId)
@@ -29,10 +24,9 @@ router.get('/:userId/available-appointments', async (ctx) => {
   // remove duplicates from calendars (if any) using lodash _
   calendars = _.uniqBy(calendars, 'calendar_id');
 
-  // for each calendar: service: getEvents(calendarId)
   let availableAppointments = generateDefaultAvailableAppointments(
-    DEFAULT_APPOINTMENT_DURATION,
     DEFAULT_LIMIT_DAYS_AHEAD,
+    DEFAULT_APPOINTMENT_DURATION,
   );
 
   for (const calendar of calendars) {
@@ -59,23 +53,24 @@ router.get('/:userId/available-appointments', async (ctx) => {
 function generateDefaultAvailableAppointments(limitDaysAhead, appointmentDuration) {
   const today = moment().format('YYYY-MM-DD');
 
-  let dates = { today: [] };
-
-  for (let i = 0; i < limitDaysAhead; i++) {
-    const date = moment(today).add(i, 'days').format('YYYY-MM-DD');
-    dates[date] = [];
-  }
+  let dates = [];
 
   const numberOfSlotsPerDay = Math.floor((24 * 60) / appointmentDuration);
 
   let defaultSchedule = [];
 
+  const startTime = moment().startOf('day');
+
   for (let i = 0; i < numberOfSlotsPerDay; i++) {
-    const start = moment()
-      .startOf('day')
-      .add(i * appointmentDuration, 'minutes');
-    const end = moment(start).add(appointmentDuration, 'minutes');
-    defaultSchedule.push({ start: start.format(), end: end.format(), isBooked: false });
+    defaultSchedule.push({
+      startTime: startTime.add(i * appointmentDuration, 'minutes').format('HH:mm'),
+      isBooked: false,
+    });
+  }
+
+  for (let i = 0; i < limitDaysAhead; i++) {
+    const date = moment(today).add(i, 'days').format('YYYY-MM-DD');
+    dates.push({ date, slots: defaultSchedule });
   }
 
   return dates;
