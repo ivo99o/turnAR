@@ -1,0 +1,83 @@
+import Router from '@koa/router';
+import { createOAuthClient } from '../config/googleOAuth.js';
+import CalendarConnection from '../models/CalendarConnection.js';
+import { google } from 'googleapis';
+import { createCalendarConnection } from '../queries/calendarConnectionQueries.js';
+import { getValidAccessToken, revokeGoogleAccess } from '../services/googleCalendar.js';
+import axios from 'axios';
+
+const router = new Router({
+  prefix: '/google',
+});
+
+router.get('/auth/link', async (ctx) => {
+  const oauthClient = createOAuthClient();
+
+  // TODO: Create a new CalendarConnection
+
+  const url = oauthClient.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: [
+      'https://www.googleapis.com/auth/calendar.events',
+      'https://www.googleapis.com/auth/userinfo.email',
+    ],
+    state: JSON.stringify({
+      mensaje:
+        'Esto deberia ser un ID de una instancia ya creada de CalendarConnection para luego solo actualizar utilizando esta referencia',
+    }), // TOOD: Usar el ID de CalendarConnection o de userId
+  });
+
+  ctx.response.body = { url };
+});
+
+router.get('/auth/callback', async (ctx) => {
+  try {
+    const { code, state } = ctx.query;
+
+    if (!code) {
+      ctx.status = 400;
+      ctx.body = { error: 'Authorization code is missing' };
+      return;
+    }
+
+    // 2. Exchange the code for tokens
+    const oauthClient = createOAuthClient();
+    const { tokens } = await oauthClient.getToken(code);
+    const { access_token, refresh_token, token_type, scope, expiry_date } = tokens;
+
+    // 3. Fetch the Google account info
+    oauthClient.setCredentials(tokens);
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauthClient });
+    const { data } = await oauth2.userinfo.get();
+    const { id: google_account_id, email } = data;
+
+    // 4. Save the tokens and account info in the database
+    await createCalendarConnection({
+      access_token,
+      refresh_token,
+      token_type,
+      scope,
+      expiry_date,
+      google_account_id,
+      email,
+    });
+
+    // 5. Redirect back to frontend
+    ctx.redirect(`${process.env.FRONTEND_URL}/settings/integrations?success=true`);
+  } catch (err) {
+    console.error('Google Calendar callback error:', err);
+    ctx.redirect(`${process.env.FRONTEND_URL}/settings/integrations?error=true`);
+  }
+});
+
+router.delete('/auth/disconnect', async (ctx) => {
+  const { id } = ctx.query;
+
+  await revokeGoogleAccess(id);
+
+  ctx.status = 200;
+  ctx.body = { message: 'Google Calendar disconnected successfully' };
+});
+
+export default router;
