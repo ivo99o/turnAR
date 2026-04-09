@@ -2,7 +2,10 @@ import moment from 'moment';
 import { getValidAccessToken } from '../services/googleCalendar.js';
 import axios from 'axios';
 
-async function getEvents(calendarId, { startDate = moment(), endDate = moment().add(7, 'days') }) {
+async function getEvents(
+  calendarId,
+  { startDate = moment(), endDate = moment().add(7, 'days') } = {},
+) {
   try {
     const accessToken = await getValidAccessToken(calendarId);
 
