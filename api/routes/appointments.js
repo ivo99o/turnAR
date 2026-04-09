@@ -43,26 +43,22 @@ router.post('/:calendarId/book-appointment', async (ctx) => {
     ctx.body = { error: 'Missing required fields: date, startTime, endTime, email' };
     return;
   }
-
   if (!moment(date, 'YYYY-MM-DD', true).isValid()) {
     ctx.status = 400;
     ctx.body = { error: 'Invalid date format. Expected format: YYYY-MM-DD' };
     return;
   }
-
   if (!moment(startTime, 'HH:mm', true).isValid() || !moment(endTime, 'HH:mm', true).isValid()) {
     ctx.status = 400;
     ctx.body = { error: 'Invalid time format. Expected format: HH:mm' };
     return;
   }
-
   // Check if the appointment date is in the future
   if (moment(date).isBefore(moment().startOf('day'))) {
     ctx.status = 400;
     ctx.body = { error: 'Invalid appointment date. Please select a future date.' };
     return;
   }
-
   // TODO: cubrir caso de endTime = 00:00
   if (moment(endTime, 'HH:mm').isSameOrBefore(moment(startTime, 'HH:mm'))) {
     ctx.status = 400;
