@@ -18,7 +18,7 @@ router.get('/:calendarId/appointments-schedule', async (ctx) => {
 
   let calendar = await CalendarConnection.query()
     .where('id', calendarId)
-    .where('is_active', true)
+    .where('status', 'active')
     .first();
 
   if (!calendar || calendar.length === 0) {

@@ -1,4 +1,5 @@
 import CalendarConnection from '../models/CalendarConnection.js';
+import _ from 'lodash';
 
 const createCalendarConnection = async (data) => {
   if (!data) {
@@ -6,6 +7,7 @@ const createCalendarConnection = async (data) => {
   }
 
   let {
+    user_id,
     access_token,
     refresh_token,
     token_type,
@@ -13,36 +15,53 @@ const createCalendarConnection = async (data) => {
     expiry_date,
     google_account_id,
     email,
-    is_active,
+    status = 'pending',
   } = data;
-
-  is_active = true; // Ensure new connections are active by default
 
   // Basic validation
   if (
-    !access_token ||
-    !refresh_token ||
-    !token_type ||
-    !scope ||
-    !expiry_date ||
-    !google_account_id ||
-    !email
+    _.isNull(user_id) ||
+    _.isNull(access_token) ||
+    _.isNull(refresh_token) ||
+    _.isNull(token_type) ||
+    _.isNull(scope) ||
+    _.isNull(expiry_date) ||
+    _.isNull(google_account_id) ||
+    _.isNull(email)
   ) {
     throw new Error('Missing required fields');
   }
 
   const newConnection = await CalendarConnection.query().insert({
+    user_id,
     access_token,
     refresh_token,
     token_type,
     scope,
-    expiry_date: new Date(expiry_date),
+    expiry_date,
     google_account_id,
     email,
-    is_active,
+    status,
   });
 
   return newConnection;
 };
 
-export { createCalendarConnection };
+const updateCalendarConnection = async (id, data) => {
+  if (!id) {
+    throw new Error('Calendar connection ID is required');
+  }
+
+  const updatedConnection = await CalendarConnection.query()
+    .findById(id)
+    .patch(data)
+    .returning('*');
+
+  if (!updatedConnection) {
+    throw new Error('Calendar connection not found');
+  }
+
+  return updatedConnection;
+};
+
+export { createCalendarConnection, updateCalendarConnection };

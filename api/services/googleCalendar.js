@@ -13,7 +13,7 @@ async function getValidAccessToken(id) {
     throw new Error('Calendar connection not found');
   }
 
-  if (!connection.is_active) {
+  if (!connection.status || connection.status !== 'active') {
     throw new Error('Calendar connection is inactive');
   }
 
@@ -69,7 +69,7 @@ async function revokeGoogleAccess(id) {
     throw new Error('Failed to revoke Google access: ' + error);
   }
 
-  await CalendarConnection.query().findById(id).update({ is_active: false });
+  await CalendarConnection.query().findById(id).update({ status: 'inactive' });
 }
 
 export { getValidAccessToken, revokeGoogleAccess };
