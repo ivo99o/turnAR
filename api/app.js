@@ -14,6 +14,20 @@ Model.knex(knex);
 
 const app = new Koa();
 
+app.use(async (ctx, next) => {
+  ctx.set('Access-Control-Allow-Origin', 'http://localhost:5174');
+  ctx.set(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  );
+  ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  if (ctx.method === 'OPTIONS') {
+    ctx.status = 204;
+    return;
+  }
+  await next();
+});
+
 // app.use(errorHandler);
 app.use(bodyParser());
 app.use(passport.initialize());

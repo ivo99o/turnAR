@@ -8,19 +8,20 @@ import {
 } from '../queries/calendarConnectionQueries.js';
 import { revokeGoogleAccess } from '../services/googleCalendar.js';
 import verifyJWT from '../auth/middleware.js';
+import { FRONTEND_URL_CALLBACK } from '../config/index.js';
 
 const router = new Router({
   prefix: '/google',
 });
 
-router.use(verifyJWT);
+// router.use(verifyJWT);
 
-router.get('/auth/link', async (ctx) => {
+router.get('/auth/link', verifyJWT, async (ctx) => {
   const oauthClient = createOAuthClient();
 
-  const { userId } = ctx.query;
+  const user = ctx.state.user;
 
-  if (!userId) {
+  if (!user || !user.id) {
     ctx.status = 400;
     ctx.body = { error: 'User ID is required' };
     return;
@@ -28,11 +29,11 @@ router.get('/auth/link', async (ctx) => {
 
   let connection;
 
-  connection = await CalendarConnection.query().where({ user_id: userId }).first();
+  connection = await CalendarConnection.query().where({ user_id: user.id }).first();
 
   if (!connection) {
     connection = await createCalendarConnection({
-      user_id: userId,
+      user_id: user.id,
       access_token: '',
       refresh_token: '',
       token_type: '',
@@ -57,7 +58,7 @@ router.get('/auth/link', async (ctx) => {
     ],
     state: JSON.stringify({
       connectionId: connection.id,
-      userId,
+      userId: user.id,
     }),
   });
 
@@ -120,16 +121,39 @@ router.get('/auth/callback', async (ctx) => {
     });
 
     // 5. Redirect back to frontend
-    ctx.redirect(`${process.env.FRONTEND_URL}/settings/integrations?success=true`);
+    ctx.redirect(`${FRONTEND_URL_CALLBACK}?success=true`);
   } catch (err) {
     if (connectionId) await updateCalendarConnection(connectionId, { status: 'error' });
 
     console.error('Google Calendar callback error:', err);
-    ctx.redirect(`${process.env.FRONTEND_URL}/settings/integrations?error=true`);
+    ctx.redirect(`${FRONTEND_URL_CALLBACK}?error=true`);
   }
 });
 
-router.delete('/auth/disconnect', async (ctx) => {
+router.get('/connection', verifyJWT, async (ctx) => {
+  const user = ctx.state.user;
+
+  if (!user || !user.id) {
+    ctx.status = 400;
+    ctx.body = { error: 'User ID is required' };
+    return;
+  }
+
+  const connection = await CalendarConnection.query().where({ user_id: user.id }).first();
+
+  if (!connection) {
+    ctx.status = 404;
+    ctx.body = { error: 'No Google Calendar connection found' };
+    return;
+  }
+
+  ctx.body = {
+    email: connection.email,
+    status: connection.status,
+  };
+});
+
+router.delete('/auth/disconnect', verifyJWT, async (ctx) => {
   const { id } = ctx.query;
 
   await revokeGoogleAccess(id);

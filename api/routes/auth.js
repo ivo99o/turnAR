@@ -22,8 +22,6 @@ router.post('/register', async (ctx) => {
 
 router.post('/login', async (ctx, next) => {
   return passport.authenticate('local', { session: false }, (err, user, info) => {
-    console.log(user);
-
     if (!user) ctx.throw(401, info?.message ?? 'Invalid credentials');
 
     const token = sign(user);
