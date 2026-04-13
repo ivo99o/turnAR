@@ -8,7 +8,8 @@ import {
 } from '../queries/calendarConnectionQueries.js';
 import { revokeGoogleAccess } from '../services/googleCalendar.js';
 import verifyJWT from '../auth/middleware.js';
-import { FRONTEND_URL_CALLBACK } from '../config/index.js';
+import { FRONTEND_URL_CALLBACK, JWT_SECRET } from '../config/index.js';
+import { sign, verify } from '../auth/jwt.js';
 
 const router = new Router({
   prefix: '/google',
@@ -49,6 +50,14 @@ router.get('/auth/link', verifyJWT, async (ctx) => {
     });
   }
 
+  const state = sign(
+    { userId: ctx.state.user.id, connectionId: connection.id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '10m',
+    },
+  );
+
   const url = oauthClient.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
@@ -56,10 +65,7 @@ router.get('/auth/link', verifyJWT, async (ctx) => {
       'https://www.googleapis.com/auth/calendar.events',
       'https://www.googleapis.com/auth/userinfo.email',
     ],
-    state: JSON.stringify({
-      connectionId: connection.id,
-      userId: user.id,
-    }),
+    state,
   });
 
   ctx.response.body = { url };
@@ -68,7 +74,15 @@ router.get('/auth/link', verifyJWT, async (ctx) => {
 router.get('/auth/callback', async (ctx) => {
   const { code, state } = ctx.query;
 
-  const { userId, connectionId } = JSON.parse(state);
+  // Verify state
+  let payload;
+  try {
+    payload = verify(state, JWT_SECRET);
+  } catch {
+    ctx.throw(401, 'Invalid or expired state');
+  }
+
+  const { userId, connectionId } = payload;
 
   try {
     if (!code) {
