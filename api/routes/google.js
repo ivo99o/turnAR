@@ -6,12 +6,14 @@ import {
   createCalendarConnection,
   updateCalendarConnection,
 } from '../queries/calendarConnectionQueries.js';
-import { getValidAccessToken, revokeGoogleAccess } from '../services/googleCalendar.js';
-import axios from 'axios';
+import { revokeGoogleAccess } from '../services/googleCalendar.js';
+import verifyJWT from '../auth/middleware.js';
 
 const router = new Router({
   prefix: '/google',
 });
+
+router.use(verifyJWT);
 
 router.get('/auth/link', async (ctx) => {
   const oauthClient = createOAuthClient();
@@ -134,6 +136,10 @@ router.delete('/auth/disconnect', async (ctx) => {
 
   ctx.status = 200;
   ctx.body = { message: 'Google Calendar disconnected successfully' };
+});
+
+router.get('/protected', async (ctx) => {
+  ctx.body = ctx.state.user;
 });
 
 export default router;
