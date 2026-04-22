@@ -7,12 +7,13 @@ import User from '../models/User.js';
 const router = new Router({ prefix: '/auth' });
 
 router.post('/register', async (ctx) => {
-  const { email, password } = ctx.request.body;
+  const { email, password, name } = ctx.request.body;
   const hash = await bcrypt.hash(password, 12);
 
   const user = await User.query().insertAndFetch({
     email,
     password_hash: hash,
+    name,
     workspace_id: '353cf7d4-ecb0-4717-acbf-9c0f6b9a884f',
   });
   const token = sign({ ...user });

@@ -20,3 +20,5 @@ export const FRONTEND_URL_CALLBACK = process.env.FRONTEND_URL_CALLBACK;
 
 // JWT secret
 export const JWT_SECRET = process.env.JWT_SECRET;
+
+export const IGNORE_RATE_LIMIT = process.env.IGNORE_RATE_LIMIT === 'true';

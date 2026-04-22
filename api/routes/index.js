@@ -1,6 +1,8 @@
 import Router from '@koa/router';
 import googleRoutes from './google.js';
 import appointmentsRoutes from './appointments.js';
+import homeRoutes from './home.js';
+import verifyJWT from '../auth/middleware.js';
 import authRoutes from './auth.js';
 import { cheapLimit, expensiveLimit } from '../middlewares/rateLimit.js';
 
@@ -14,5 +16,8 @@ router.use(cheapLimit, authRoutes.routes());
 
 // Partly public (callback)
 router.use(expensiveLimit, googleRoutes.routes());
+
+// Private and workspace-specific
+router.use(expensiveLimit, verifyJWT, homeRoutes.routes());
 
 export default router;
