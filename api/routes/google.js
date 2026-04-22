@@ -10,14 +10,13 @@ import { revokeGoogleAccess } from '../services/googleCalendar.js';
 import verifyJWT from '../auth/middleware.js';
 import { FRONTEND_URL_CALLBACK, JWT_SECRET } from '../config/index.js';
 import { sign, verify } from '../auth/jwt.js';
+import workspaceMiddleware from '../middlewares/workspace.js';
 
 const router = new Router({
   prefix: '/google',
 });
 
-// router.use(verifyJWT);
-
-router.get('/auth/link', verifyJWT, async (ctx) => {
+router.get('/auth/link', verifyJWT, workspaceMiddleware, async (ctx) => {
   const oauthClient = createOAuthClient();
 
   const user = ctx.state.user;
@@ -144,7 +143,7 @@ router.get('/auth/callback', async (ctx) => {
   }
 });
 
-router.get('/connection', verifyJWT, async (ctx) => {
+router.get('/connection', verifyJWT, workspaceMiddleware, async (ctx) => {
   const user = ctx.state.user;
 
   if (!user || !user.id) {
@@ -167,7 +166,7 @@ router.get('/connection', verifyJWT, async (ctx) => {
   };
 });
 
-router.delete('/auth/disconnect', verifyJWT, async (ctx) => {
+router.delete('/auth/disconnect', verifyJWT, workspaceMiddleware, async (ctx) => {
   const { id } = ctx.query;
 
   await revokeGoogleAccess(id);
